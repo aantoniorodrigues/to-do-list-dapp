@@ -13,5 +13,17 @@ contract ToDoList {
         bool completed;
     }
 
+    // State variable to store tasks.
+    mapping(uint => Task) public tasks;
+
+    constructor() public {
+        createTask('Task initialized in the constructor.');
+    }
+
+    // Function to create a new task.
+    function createTask(string memory _content) public {
+        taskCount++;
+        tasks[taskCount] = Task(taskCount, _content, false);
+    }
     
 }
