@@ -59,7 +59,6 @@ App = {
         App.contracts.ToDoList = TruffleContract(toDoList);
         // Set the web3 provider.
         App.contracts.ToDoList.setProvider(App.web3Provider);
-        console.log('contract:\n', toDoList);
         // Fill the smart contract with the real values from the blockchain.
         App.toDoList = await App.contracts.ToDoList.deployed();
     },
@@ -76,10 +75,11 @@ App = {
         // Render the account's address.
         $('#account').html(App.content);
 
+        // Render the tasks.
+        await App.renderTasks();
+
         // Update loading status
         App.setLoading(false);
-
-        // Render the tasks.
     },
 
     renderTasks: async () => {
@@ -89,7 +89,7 @@ App = {
         let $taskTemplate = $('.taskTemplate');
 
         // Iterate through all the existent tasks.
-        for (let i = 0; i <= taskCount; i++){
+        for (let i = 1; i <= taskCount; i++){
             // Get the task data from the blockchain.
             let task = await App.toDoList.tasks(i);
             // Set variables with the task id, content and completion status.
@@ -103,8 +103,37 @@ App = {
             $newTaskTemplate.find('input')
                             .prop('name', taskId)
                             .prop('checked', taskCompleted)
-                            // .on('click', App.toggleCompleted)
+                            .on('click', App.toggleCompleted)
+
+            if (taskCompleted) {
+              $('#completedTaskList').append($newTaskTemplate);
+            } else {
+              $('#taskList').append($newTaskTemplate);
+            }
+
+            // Show the task.
+            $newTaskTemplate.show();
         }
+    },
+
+    createTask: async () => {
+      App.setLoading(true);
+      // Get the input value.
+      let content = $('#newTask').val();
+      // Create a new task with the user's input.
+      await App.toDoList.createTask(content);
+      // Reload the page with the new task created.
+      window.location.reload();
+    },
+
+    toggleCompleted: async (event) => {
+      App.setLoading(true);
+      // Get the task id of the selected checkbox.
+      let taskId = event.target.name;
+      // Set the task to completed.
+      await App.toDoList.toggleCompleted(taskId);
+      // Reload the page with the task status updated.
+      window.location.reload();
     },
 
     setLoading: (boolean) => {
